@@ -1,0 +1,193 @@
+﻿@page "/contacts/detail/{Id:int?}"
+@using Contactos.Shrd.DTO
+@using Contactos.Shrd.Enum
+@using Contactos.WebClient.Services
+@inject HttpClient Http
+@inject ContactsClientService service
+@inject NavigationManager Navigation
+
+<div>
+    <h1>Contactos :: Detalle</h1>
+
+</div>
+
+@if (!string.IsNullOrEmpty(@message))
+{
+    <div class="alert alert-success">@message</div>
+}
+@if (!string.IsNullOrEmpty(@errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+
+<EditForm Model="@editContact" OnValidSubmit="OnValidSubmitCode">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row mb-1">
+                        <label for="Nombre" class="col-sm-2 col-form-label text-end">Nombre</label>
+                        <div class="col-sm-8">
+                            <InputText id="Nombre" style="display:table-cell; width:100%" @bind-Value="@editContact.Nombre" Placeholder="Nombre del Contacto" />
+                        </div>
+                    </div>
+                    <div class="row mb-1">
+                        <label for="Telefono" class="col-sm-2 col-form-label text-end">Teléfono</label>
+                        <div class="col-sm-8">
+                            <InputText id="Telefono" style="display:table-cell; width:100%" @bind-Value="@editContact.Telefono" Placeholder="Teléfono del Contacto" />
+                        </div>
+                    </div>
+                    <div class="row mb-1">
+                        <label for="Email" class="col-sm-2 col-form-label text-end">Email</label>
+                        <div class="col-sm-8">
+                            <InputText id="Email" style="display:table-cell; width:100%" @bind-Value="@editContact.Email" Placeholder="Email del Contacto" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <input type="submit" class="btn btn-primary" style="float: left; position: relative; top: 10px; right: 10px; margin: 20px;" value="Guardar" />
+
+</EditForm>
+<button class="btn btn-secondary" hidden="@isNew" style="float: left; position: relative; top: 10px; right: 10px; margin: 20px;" @onclick="@Delete">
+    Eliminar
+</button>
+<button class="btn btn-secondary" style="float: left; position: relative; top: 10px; right: 10px; margin: 20px;" @onclick="@Cancel">
+    Cancelar
+</button>
+
+@code {
+    [Parameter]
+    public int? Id { get; set; } = null;
+
+    private PageMode pageMode;
+
+    private ContactDTO newContact = new ContactDTO();
+    private ContactDTO editContact = new ContactDTO();
+    private bool isNew = true;
+
+    public string message = string.Empty;
+    public string errorMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        if (Id != null && Id > 0)
+        {
+            pageMode = PageMode.Edit;
+            isNew = false;
+            int contactId = (int)Id;
+            await GetContact(contactId);
+        }
+        else
+        {
+            pageMode = PageMode.Create;
+            isNew = true;
+        }
+    }
+    private async Task GetContact(int id)
+    {
+        editContact = await service.GetContact(id);
+    }
+
+    private async Task OnValidSubmitCode()
+    {
+
+        if (isNew)
+        {
+            newContact = editContact;
+            newContact.Id = Id;
+            var newId = await service.AddContact(newContact);
+
+            if (newId == null || newId == 0)
+            {
+                await Fail("Error al guardar los datos");
+            }
+            else
+            {
+                editContact.Id = newId;
+                isNew = false;
+                //cancelOperation();
+                await Success("Contacto guardado correctamente");
+            }
+        }
+        else
+        {
+
+            var state = await service.EditContact(editContact);
+
+            if (state.Error)
+            {
+                await Fail("Error al guardar los datos: " + state.Message);
+            }
+            else
+            {
+
+                //cancelOperation();
+                await Success("Contacto guardado correctamente");
+            }
+        }
+    }
+
+
+    private async Task Cancel()
+    {
+        Navigation.NavigateTo($"contacts");
+    }
+
+    private async Task Delete()
+    {
+        
+
+        var state = await service.DeleteContact((int)Id);
+
+        if (state.Error)
+        {
+            await Fail("Error al eliminar el Contacto");
+        }
+        else
+        {
+
+            await Success("Contacto eliminado correctamente");
+            await Cancel();
+        }
+
+    }
+
+
+
+    public void cancelOperation()
+    {
+        this.pageMode = PageMode.Read;
+
+    }
+
+    public void cancelEditOperation()
+    {
+
+        cancelOperation();
+    }
+
+    //Notificaciones
+    public async Task Success(string message)
+    {
+        this.message = message;
+        StateHasChanged();
+
+        await Task.Delay(2000);
+        this.message = string.Empty;
+        StateHasChanged();
+    }
+    public async Task Fail(string errorMessage)
+    {
+        this.errorMessage = errorMessage;
+        StateHasChanged();
+
+        await Task.Delay(2000);
+        this.errorMessage = string.Empty;
+        StateHasChanged();
+    }
+
+}

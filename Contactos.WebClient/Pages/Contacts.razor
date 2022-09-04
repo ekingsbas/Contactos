@@ -1,0 +1,67 @@
+﻿@page "/contacts"
+@using Contactos.Shrd.DTO
+@using Contactos.WebClient.Services
+@inject HttpClient Http
+@inject ContactsClientService service
+@inject NavigationManager Navigation
+
+<div>
+    <h1 style="float: left;">Contactos</h1>
+
+    <button class="btn btn-primary" style="float: right; position: relative; top: 10px; right: 10px;" @onclick="@addContact">
+        Agregar
+    </button>
+
+</div>
+
+@if (contactos == null)
+{
+    <p><em>Cargando...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Nombre</th>
+                <th>Teléfono</th>
+                <th>Email</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var contact in contactos)
+            {
+                <tr>
+                    <td><a href="contacts/detail/@contact.Id">@contact.Id</a></td>
+                    <td>@contact.Nombre</td>
+                    <td>@contact.Telefono</td>
+                    <td>@contact.Email</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+
+    private List<ContactDTO> contactos;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+
+        await GetContacts();
+    }
+
+    private async Task GetContacts()
+    {
+        contactos = new List<ContactDTO>();
+        contactos = await service.GetContacts();
+    }
+
+    private async Task addContact()
+    {
+        Navigation.NavigateTo($"contacts/detail/{null}");
+    }
+}

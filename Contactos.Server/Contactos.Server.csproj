@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>D:\Trabajos\Ejercicios\FreshBooks\Contactos\Contactos.Server\Contactos.Server.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Mindbox.Data.Linq" Version="5.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.4.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="6.4.0" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.0" />
+    <PackageReference Include="System.Data.SQLite" Version="1.0.116" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Contactos.Business\Contactos.Business.csproj" />
+    <ProjectReference Include="..\Contactos.Shrd\Contactos.Shrd.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="contactsdb.sqlite">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+
+</Project>
